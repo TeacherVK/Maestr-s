@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>Maestro - Herramienta Docente con IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Prevents theme flicker by applying the theme before the page renders.
+      if (localStorage.getItem('maestro-theme') === 'dark' || (!('maestro-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+    <style>
+        :root {
+            /* Light Theme Palette */
+            --color-bg-base: #f8fafc; /* slate-50 */
+            --color-bg-secondary: #ffffff;
+            --color-bg-tertiary: #f1f5f9; /* slate-100 */
+            --color-text-base: #0f172a; /* slate-900 */
+            --color-text-muted: #64748b; /* slate-500 */
+            --color-text-inverted: #ffffff;
+            --color-border: #e2e8f0; /* slate-200 */
+            --color-primary: #3b82f6;
+            --color-primary-hover: #2563eb;
+            --color-primary-accent: #dbeafe;
+            --color-accent: #3b82f6;
+            --color-grade-good: #22c55e;
+            --color-grade-satisfactory: #eab308;
+            --color-grade-fail: #ef4444;
+            --color-flash-success: rgba(34, 197, 94, 0.3);
+
+            font-family: 'Inter', sans-serif;
+        }
+
+        html.dark {
+            /* Dark Theme Palette */
+            --color-bg-base: #0f172a; /* slate-900 */
+            --color-bg-secondary: #1e293b; /* slate-800 */
+            --color-bg-tertiary: #334155; /* slate-700 */
+            --color-text-base: #f8fafc; /* slate-50 */
+            --color-text-muted: #94a3b8; /* slate-400 */
+            --color-text-inverted: #f8fafc; /* slate-50 */
+            --color-border: #334155; /* slate-700 */
+            --color-primary: #60a5fa;
+            --color-primary-hover: #3b82f6;
+            --color-primary-accent: #1e3a8a; /* A bit darker for better contrast */
+            --color-accent: #60a5fa;
+            --color-grade-good: #4ade80;
+            --color-grade-satisfactory: #facc15;
+            --color-grade-fail: #f87171;
+            --color-flash-success: rgba(74, 222, 128, 0.3);
+        }
+
+        /* Utility classes for new palette */
+        .bg-base { background-color: var(--color-bg-base); }
+        .bg-secondary { background-color: var(--color-bg-secondary); }
+        .bg-tertiary { background-color: var(--color-bg-tertiary); }
+        .text-base { color: var(--color-text-base); }
+        .text-muted { color: var(--color-text-muted); }
+        .text-inverted { color: var(--color-text-inverted); }
+        .border-base { border-color: var(--color-border); }
+        .bg-primary { background-color: var(--color-primary); }
+        .hover\:bg-primary-hover:hover { background-color: var(--color-primary-hover); }
+        .text-primary { color: var(--color-primary); }
+        .ring-primary { ring-color: var(--color-primary); }
+        .accent-primary { accent-color: var(--color-primary); }
+        .bg-primary-accent { background-color: var(--color-primary-accent); }
+
+        .text-grade-good { color: var(--color-grade-good); }
+        .text-grade-satisfactory { color: var(--color-grade-satisfactory); }
+        .text-grade-fail { color: var(--color-grade-fail); }
+        .bg-grade-good { background-color: var(--color-grade-good); }
+        .bg-grade-satisfactory { background-color: var(--color-grade-satisfactory); }
+        .bg-grade-fail { background-color: var(--color-grade-fail); }
+
+        /* Custom scrollbar styles */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg-tertiary); }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        html.dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        html.dark ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 var(--color-bg-tertiary);
+        }
+        html.dark body {
+            scrollbar-color: #4b5563 var(--color-bg-tertiary);
+        }
+
+        .grade-cell-feedback { animation: flash-green 1.5s ease-out; }
+        @keyframes flash-green {
+            0% { background-color: var(--color-flash-success); }
+            100% { background-color: transparent; }
+        }
+
+        /* Animation utilities */
+        .animate-view-in { animation: fade-in 0.5s ease-out forwards; }
+        .animate-modal-bg { animation: fade-in 0.2s ease-out forwards; }
+        .animate-modal-content { animation: fade-in-scale 0.2s ease-out forwards; }
+        .stagger-in { animation: fade-in-up 0.5s ease-out backwards; }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade-in-scale { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Shadows for sticky table elements */
+        .shadow-right-sm { box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.1); }
+        .dark .shadow-right-dark-sm { box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.4); }
+
+        /* Skeleton Loader Animation */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+            background-color: var(--color-bg-tertiary);
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer-animation 1.5s infinite;
+        }
+        html.dark .shimmer::after {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+        }
+        @keyframes shimmer-animation {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+
+        /* Print styles */
+        @media print {
+            body * { visibility: hidden; }
+            .printable-area, .printable-area * { visibility: visible; }
+            .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; margin: 0; overflow: visible; }
+            .printable-area-modal { overflow: visible !important; max-height: none !important; }
+            .no-print { display: none !important; }
+            html, body { background-color: #ffffff !important; }
+            .dark { --color-bg-secondary: #ffffff; --color-bg-tertiary: #f3f4f6; --color-text-base: #000000; --color-text-muted: #4b5563; --color-border: #e5e7eb; --color-grade-good: #16a34a; --color-grade-satisfactory: #d97706; --color-grade-fail: #dc2626;}
+            .bg-secondary { background-color: var(--color-bg-secondary) !important; }
+            .bg-tertiary { background-color: var(--color-bg-tertiary) !important; }
+            .text-base { color: var(--color-text-base) !important; }
+            .text-muted { color: var(--color-text-muted) !important; }
+            .border-base { border-color: var(--color-border) !important; }
+            .text-grade-good, .text-grade-satisfactory, .text-grade-fail { color: var(--color-grade-fail) !important; }
+        }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
+    "chart.js": "https://aistudiocdn.com/chart.js@^4.4.3",
+    "react-chartjs-2": "https://aistudiocdn.com/react-chartjs-2@^5.2.0",
+    "docx": "https://aistudiocdn.com/docx@^8.5.0",
+    "file-saver": "https://aistudiocdn.com/file-saver@^2.0.5",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.45.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-base text-base transition-colors duration-300">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
